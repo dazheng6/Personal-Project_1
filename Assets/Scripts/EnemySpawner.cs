@@ -4,39 +4,29 @@ using UnityEngine;
 
 public class EnemySpawner : MonoBehaviour
 {
-    public GameObject enemyPrefab; // the enemy object to spawn
-    public float minSpawnInterval = 1f; // minimum time between spawns
-    public float maxSpawnInterval = 4f; // maximum time between spawns
-    public float spawnRangeX = 5f; // range of x-axis positions to spawn enemies
-    public float spawnLocationRangeZ = 15f;
-    public List<Color> enemyColors; // list of enemy colors to choose from
+    public GameObject enemyPrefab;
+    public Material[] materials;
+    public float spawnRadius = 20f;
+    public float timeToSpawn = 1.5f;
 
-    private float spawnTimer; // timer for spawning enemies
-
-    void Update()
+    private void Start()
     {
-        // count down the spawn timer
-        spawnTimer -= Time.deltaTime;
+        StartCoroutine(SpawnEnemies());
+    }
 
-        // if the spawn timer has reached 0 or less
-        if (spawnTimer <= 0f)
+    private IEnumerator SpawnEnemies()
+    {
+        while (true)
         {
-            // reset the spawn timer to a random value between the min and max spawn intervals
-            spawnTimer = Random.Range(minSpawnInterval, maxSpawnInterval);
-
-            // choose a random position on the x axes to spawn the enemy
-            float spawnX = transform.position.x + Random.Range(-spawnRangeX, spawnRangeX);
-
-            // choose a random color for the enemy
-            Color enemyColor = enemyColors[Random.Range(0, enemyColors.Count)];
-
-            // spawn the enemy object at the chosen position and with the chosen color
-            GameObject enemyObject = Instantiate(enemyPrefab, new Vector3(spawnX, transform.position.y, spawnLocationRangeZ), Quaternion.identity);
-            MeshRenderer renderer = enemyObject.GetComponent<MeshRenderer>();
-            if (renderer != null)
+            Vector3 randomPosition = Random.onUnitSphere * spawnRadius + transform.position;
+            randomPosition.y = 1.73f;
+            GameObject enemy = Instantiate(enemyPrefab, randomPosition, Quaternion.identity);
+            Renderer renderer = enemy.GetComponent<Renderer>();
+            if (renderer != null && materials.Length > 0)
             {
-                renderer.material.color = enemyColor;
+                renderer.material = materials[Random.Range(0, materials.Length)];
             }
+            yield return new WaitForSeconds(timeToSpawn);
         }
     }
 }
